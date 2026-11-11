@@ -1,0 +1,24 @@
+{
+  "name": "education-platform-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anisort/education-platform-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/anisort/education-platform-api/issues"
+  },
+  "homepage": "https://github.com/anisort/education-platform-api#readme",
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.42.2"
+  }
+}

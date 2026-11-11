@@ -1,0 +1,644 @@
+openapi: 3.0.3
+
+info:
+  title: Education Platform API
+  description: |
+    REST API for managing educational courses and student enrollments.
+
+    The platform supports two user roles:
+    - INSTRUCTOR: Creates and manages own courses and manages student enrollments.
+    - STUDENT: Views available courses and own enrolled courses.
+
+    Authentication is implemented using JWT Bearer tokens.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User registration and authentication operations.
+  - name: Course
+    description: Operations for managing educational courses.
+  - name: Student
+    description: Operations related to student course access.
+  - name: Enrollment
+    description: Operations for managing student enrollments.
+
+paths:
+
+  # Authentication
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a user
+      description: |
+        Registers a new user as an INSTRUCTOR or STUDENT.
+        The user role is specified during registration.
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userRegistration'
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login
+      description: Authenticates a user and returns a JWT access token.
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginRequest'
+      responses:
+        '200':
+          description: Authentication successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/loginResponse'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+  # Course
+
+  /courses:
+    get:
+      tags:
+        - Course
+      summary: Get all courses
+      description: Returns a list of all available courses.
+      operationId: getAllCourses
+      security: []
+      responses:
+        '200':
+          description: List of courses retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/course'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+    post:
+      tags:
+        - Course
+      summary: Create a course
+      description: |
+        Creates a new course associated with the authenticated instructor.
+        The instructorId is assigned automatically based on the JWT token.
+      operationId: createCourse
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/courseCreate'
+      responses:
+        '201':
+          description: Course created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/course'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+  /courses/{id}:
+    parameters:
+      - $ref: '#/components/parameters/coursePathId'
+
+    get:
+      tags:
+        - Course
+      summary: Get course by ID
+      description: Returns details of a specific course.
+      operationId: getCourseById
+      security: []
+      responses:
+        '200':
+          description: Course retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/course'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+    put:
+      tags:
+        - Course
+      summary: Update a course
+      description: Updates an existing course owned by the authenticated instructor.
+      operationId: updateCourse
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/courseUpdate'
+      responses:
+        '200':
+          description: Course updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/course'
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+    delete:
+      tags:
+        - Course
+      summary: Delete a course
+      description: |
+        Deletes a course owned by the authenticated instructor.
+        All enrollment records associated with the course are also deleted.
+        Student accounts remain unchanged.
+      operationId: deleteCourse
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Course deleted successfully.
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+  # Student
+
+  /students/me/courses:
+    get:
+      tags:
+        - Student
+      summary: Get own enrolled courses
+      description: |
+        Returns all courses in which the authenticated student is enrolled.
+        The student ID is obtained from the JWT access token.
+      operationId: getOwnEnrolledCourses
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of enrolled courses retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/course'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+  # Enrollment
+
+  /courses/{courseId}/students/{studentId}:
+    parameters:
+      - $ref: '#/components/parameters/courseId'
+      - $ref: '#/components/parameters/studentId'
+
+    post:
+      tags:
+        - Enrollment
+      summary: Add a student to a course
+      description: |
+        Adds a specific student to a course owned by the authenticated instructor.
+        Only users with the STUDENT role can be enrolled.
+      operationId: addStudentToCourse
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Student added to the course successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/enrollment'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '409':
+          $ref: '#/components/responses/conflict'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+    delete:
+      tags:
+        - Enrollment
+      summary: Remove a student from a course
+      description: |
+        Removes a student from a course owned by the authenticated instructor.
+        Only the enrollment record is deleted.
+        The student account and course remain unchanged.
+      operationId: removeStudentFromCourse
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Student removed from the course successfully.
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+  /courses/{courseId}/students:
+    parameters:
+      - $ref: '#/components/parameters/courseId'
+
+    get:
+      tags:
+        - Enrollment
+      summary: Get students enrolled in a course
+      description: |
+        Returns all students enrolled in a course owned by the authenticated instructor.
+      operationId: getStudentsInCourse
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of enrolled students retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+        '401':
+          $ref: '#/components/responses/unauthorized'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/internalServerError'
+
+# Components
+
+components:
+
+  # Schemas
+
+  schemas:
+
+    user:
+      type: object
+      description: Represents a registered platform user.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          description: Unique user identifier generated by the server.
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Smith
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        role:
+          type: string
+          enum:
+            - INSTRUCTOR
+            - STUDENT
+          example: INSTRUCTOR
+        registrationDate:
+          type: string
+          format: date
+          readOnly: true
+          example: '2026-11-11'
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - role
+        - registrationDate
+
+    userRegistration:
+      type: object
+      description: Data required to register a new user.
+      properties:
+        firstName:
+          type: string
+          example: Jane
+        lastName:
+          type: string
+          example: Brown
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          writeOnly: true
+          example: password123
+        role:
+          type: string
+          enum:
+            - INSTRUCTOR
+            - STUDENT
+          example: STUDENT
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+        - role
+
+    loginRequest:
+      type: object
+      description: User credentials required for authentication.
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane@example.com
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          example: password123
+      required:
+        - email
+        - password
+
+    loginResponse:
+      type: object
+      description: Authentication response containing a JWT access token.
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token.
+          example: <jwt_access_token>
+        tokenType:
+          type: string
+          example: Bearer
+      required:
+        - accessToken
+        - tokenType
+
+    course:
+      type: object
+      description: Represents an educational course.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          description: Unique course identifier generated by the server.
+        title:
+          type: string
+          example: Introduction to Python
+        description:
+          type: string
+          nullable: true
+          example: A beginner-friendly Python programming course.
+        durationHours:
+          type: integer
+          minimum: 1
+          example: 40
+        instructorId:
+          type: string
+          format: uuid
+          readOnly: true
+          description: Identifier of the instructor who created the course.
+      required:
+        - id
+        - title
+        - durationHours
+        - instructorId
+
+    courseCreate:
+      type: object
+      description: Data required to create a course.
+      properties:
+        title:
+          type: string
+          example: Introduction to Python
+        description:
+          type: string
+          nullable: true
+          example: A beginner-friendly Python programming course.
+        durationHours:
+          type: integer
+          minimum: 1
+          example: 40
+      required:
+        - title
+        - durationHours
+
+    courseUpdate:
+      type: object
+      description: Data required to update a course.
+      properties:
+        title:
+          type: string
+          example: Advanced Python
+        description:
+          type: string
+          nullable: true
+          example: An advanced Python programming course.
+        durationHours:
+          type: integer
+          minimum: 1
+          example: 60
+      required:
+        - title
+        - durationHours
+
+    enrollment:
+      type: object
+      description: Represents a student's enrollment in a course.
+      properties:
+        studentId:
+          type: string
+          format: uuid
+          example: 33333333-3333-3333-3333-333333333333
+        courseId:
+          type: string
+          format: uuid
+          example: 22222222-2222-2222-2222-222222222222
+      required:
+        - studentId
+        - courseId
+
+    errorResponse:
+      type: object
+      description: Standard API error response.
+      properties:
+        status:
+          type: integer
+          example: 404
+        error:
+          type: string
+          example: Not Found
+        message:
+          type: string
+          example: Course not found.
+        path:
+          type: string
+          example: /api/v1/courses/22222222-2222-2222-2222-222222222222
+      required:
+        - status
+        - error
+        - message
+        - path
+
+  # Parameters
+
+  parameters:
+
+    coursePathId:
+      name: id
+      in: path
+      required: true
+      description: Unique course identifier.
+      schema:
+        type: string
+        format: uuid
+
+    courseId:
+      name: courseId
+      in: path
+      required: true
+      description: Unique course identifier.
+      schema:
+        type: string
+        format: uuid
+
+    studentId:
+      name: studentId
+      in: path
+      required: true
+      description: Unique student identifier.
+      schema:
+        type: string
+        format: uuid
+
+  # Security Schemes
+
+  securitySchemes:
+
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer Authentication.
+
+  # Reusable Responses
+
+  responses:
+
+    badRequest:
+      description: Invalid request data.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+
+    unauthorized:
+      description: Authentication is required or the access token is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+
+    forbidden:
+      description: The user does not have permission to perform this operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+
+    notFound:
+      description: The requested resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+
+    conflict:
+      description: The request conflicts with existing data.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'
+
+    internalServerError:
+      description: An unexpected server error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/errorResponse'

@@ -1,0 +1,4 @@
+npmName: education-platform-api-client
+npmVersion: 1.0.0
+supportsES6: true
+withInterfaces: true
