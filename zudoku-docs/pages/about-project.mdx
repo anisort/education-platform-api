@@ -1,0 +1,69 @@
+# About Project
+
+## Project Overview
+
+The Education Platform API is a RESTful API designed to support an online education platform.
+
+It provides functionality for managing courses, student accounts, and course enrollments. The API allows instructors to manage their courses and students, while students can explore available courses and view their enrollments.
+
+## Main Features
+
+The platform provides the following functionality:
+
+- **User Authentication** — user registration and login using JWT authentication.
+- **Course Management** — creating, retrieving, updating, and deleting courses.
+- **Student Management** — retrieving information about students enrolled in courses.
+- **Course Enrollment** — adding students to courses and removing them from courses.
+- **Role-Based Access Control** — restricting operations according to user roles.
+
+## User Roles
+
+The platform supports two user roles:
+
+- **INSTRUCTOR** — manages their own courses and student enrollments.
+- **STUDENT** — views available courses and their own enrolled courses.
+
+## Technology Stack
+
+The project uses the following technologies and tools:
+
+| Technology | Purpose |
+|---|---|
+| OpenAPI 3.0.3 | API specification and documentation format. |
+| TypeScript | Programming language used for the generated SDK. |
+| OpenAPI Generator | Automatic TypeScript SDK generation. |
+| Zudoku | API documentation website. |
+| Node.js and npm | SDK and documentation project tooling. |
+| Git and GitHub | Version control and source code hosting. |
+
+## Project Structure
+
+The repository contains the following main components:
+
+```text
+education-platform-api/
+|-- package.json
+|-- openapi.yaml
+|-- education-platform-api-design.md
+|-- typescript-sdk/
+|   |-- src/
+|   |-- dist/
+|   `-- package.json
+`-- zudoku-docs/
+    |-- apis/
+    |   `-- openapi.yaml
+    |-- pages/
+    |   |-- installation.mdx
+    |   |-- authorization.mdx
+    |   |-- about-project.mdx
+    |   `-- about.mdx
+    |-- zudoku.config.tsx
+    `-- package.json
+```
+
+## Additional Resources
+
+- [API Reference](/api) — detailed API endpoint documentation.
+- [Installation](/installation) — instructions for building and installing the TypeScript SDK.
+- [Authorization](/authorization) — authentication and access control details.
+- [GitHub Repository](https://github.com/anisort/education-platform-api) — project source code.

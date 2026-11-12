@@ -1,0 +1,110 @@
+# Installation
+
+## Overview
+
+The Education Platform API provides a TypeScript SDK generated from the OpenAPI specification.
+
+The SDK simplifies interaction with the API by providing ready-to-use API classes, request and response models, and built-in support for authentication.
+
+The package name is `education-platform-api-client`.
+
+## Prerequisites
+
+Before using the SDK, make sure you have installed:
+
+- [Node.js](https://nodejs.org/) (LTS version recommended).
+- npm (included with Node.js).
+- TypeScript (if you are developing a TypeScript application).
+
+## Building the SDK
+
+The SDK source code is located in the `typescript-sdk` directory of the project repository.
+
+To build the SDK, navigate to its directory:
+
+```bash
+cd typescript-sdk
+```
+
+Install the dependencies:
+
+```bash
+npm install
+```
+
+Build the package:
+
+```bash
+npm run build
+```
+
+After a successful build, the compiled files will be available in the `dist` directory.
+
+## Installing the SDK
+
+The SDK is currently distributed in this repository and is not published to the npm registry. From the repository root, install it with:
+
+```bash
+npm install ./typescript-sdk
+```
+
+The path is relative to the directory where you run `npm install`. For example, if your application is in `zudoku-docs`, run `npm install ../typescript-sdk` from that directory. For an application elsewhere, use the relative path from that application to this repository's `typescript-sdk` directory.
+
+## Basic Usage
+
+Import the required classes from the SDK:
+
+```typescript
+import {
+  Configuration,
+  CourseApi,
+} from "education-platform-api-client";
+```
+
+`Configuration` tells the SDK where the API is running. `CourseApi` then uses that configuration for its requests:
+
+```typescript
+const configuration = new Configuration({
+  basePath: "http://localhost:8080/api/v1",
+});
+
+const courseApi = new CourseApi(configuration);
+```
+
+The `CourseApi` instance can now be used to call course endpoints. The SDK already defaults to `http://localhost:8080/api/v1`, so set `basePath` explicitly only when your API runs at a different URL.
+
+## Authentication
+
+Most API operations require authentication using a JWT access token.
+
+After successfully logging in, pass the received access token in the configuration used to create API clients that call protected endpoints:
+
+```typescript
+const configuration = new Configuration({
+  basePath: "http://localhost:8080/api/v1",
+  accessToken: "YOUR_ACCESS_TOKEN",
+});
+
+const courseApi = new CourseApi(configuration);
+```
+
+The SDK will include the token in requests to protected endpoints using the Bearer authentication scheme.
+
+Replace `YOUR_ACCESS_TOKEN` with the actual token received from the authentication endpoint.
+
+## Available API Clients
+
+The SDK provides the following API classes:
+
+| API Class | Description |
+|---|---|
+| `AuthenticationApi` | User registration and authentication. |
+| `CourseApi` | Course management operations. |
+| `StudentApi` | Operations related to the authenticated student's courses. |
+| `EnrollmentApi` | Managing student enrollments in courses. |
+
+## Additional Resources
+
+- [API Reference](/api) — detailed documentation of available API endpoints.
+- [Authorization](/authorization) — information about authentication and access control.
+- [GitHub Repository](https://github.com/anisort/education-platform-api) — project source code.

@@ -1,0 +1,106 @@
+# Authorization
+
+## Overview
+
+The Education Platform API uses JSON Web Tokens (JWT) for authentication and authorization.
+
+Users must authenticate before accessing protected endpoints. After successful login, the API returns an access token that must be included in subsequent requests.
+
+The API uses the Bearer authentication scheme.
+
+## Authentication Flow
+
+The authentication process consists of the following steps:
+
+1. A user registers or logs in using their credentials.
+2. The API validates the provided credentials.
+3. If the credentials are valid, the API returns an access token.
+4. The client stores the token.
+5. The client includes the token in the `Authorization` header when sending requests to protected endpoints.
+6. The API validates the token and checks the user's permissions.
+
+## Login
+
+To authenticate, send a `POST` request to:
+
+```http
+POST /auth/login
+```
+
+Provide the user's login credentials in the request body.
+
+If authentication is successful, the API returns a JWT access token.
+
+## Using the Access Token
+
+Include the access token in the `Authorization` header of every request to a protected endpoint:
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+Example using `curl`:
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/students/me/courses" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+Replace `YOUR_ACCESS_TOKEN` with the token received after successful authentication.
+
+## User Roles
+
+The API supports two user roles:
+
+### INSTRUCTOR
+
+An instructor can:
+
+- Create courses.
+- View available courses.
+- Update their own courses.
+- Delete their own courses.
+- View students enrolled in their courses.
+- Add students to their courses.
+- Remove students from their courses.
+
+### STUDENT
+
+A student can:
+
+- Register an account.
+- Log in to the platform.
+- View available courses.
+- View their own enrolled courses.
+
+Students cannot create or manage courses or enroll themselves in courses.
+
+## Access Control
+
+Access to protected endpoints depends on the authenticated user's role and resource ownership.
+
+| Operation | INSTRUCTOR | STUDENT |
+|---|---|---|
+| Register an account | Yes | Yes |
+| Log in | Yes | Yes |
+| View available courses | Yes | Yes |
+| Create a course | Yes | No |
+| Update own courses | Yes | No |
+| Delete own courses | Yes | No |
+| View students enrolled in own courses | Yes | No |
+| Add students to own courses | Yes | No |
+| Remove students from own courses | Yes | No |
+| View own enrolled courses | No | Yes |
+
+An instructor can manage only their own courses. A student can access only their own enrollment information.
+
+## Error Responses
+
+Protected endpoints may return the following HTTP status codes:
+
+| Status Code | Description |
+|---|---|
+| `401 Unauthorized` | Authentication is missing, invalid, or the token is not accepted. |
+| `403 Forbidden` | The user is authenticated but does not have permission to perform the requested operation. |
+
+For details about individual endpoint responses, see the [API Reference](/api).
